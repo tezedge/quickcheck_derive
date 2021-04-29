@@ -41,9 +41,9 @@ fn arbitrary_derive(s: synstructure::Structure) -> TokenStream {
             let count = s.variants().len();
 
             let body = quote! {
-                match ::rand::Rng::gen_range(g, 0, #count) {
+                match usize::arbitrary(g) % #count {
                     #variant_tokens
-                    _ => unreachable!()
+                    _ => unreachable!(),
                 }
             };
 
@@ -53,7 +53,7 @@ fn arbitrary_derive(s: synstructure::Structure) -> TokenStream {
 
     s.gen_impl(quote! {
         gen impl ::quickcheck::Arbitrary for @Self {
-            fn arbitrary<G: ::quickcheck::Gen>(#g: &mut G) -> Self {
+            fn arbitrary(#g: &mut ::quickcheck::Gen) -> Self {
                 #body
             }
         }
@@ -71,7 +71,7 @@ fn test_arbitrary_unit_struct() {
             #[allow(non_upper_case_globals)]
             const _DERIVE_quickcheck_Arbitrary_FOR_ArbitraryTest: () = {
                 impl ::quickcheck::Arbitrary for ArbitraryTest {
-                    fn arbitrary<G: ::quickcheck::Gen>(_g: &mut G) -> Self {
+                    fn arbitrary(_g: &mut ::quickcheck::Gen) -> Self {
                         ArbitraryTest
                     }
                 }
@@ -91,7 +91,7 @@ fn test_arbitrary_struct() {
             #[allow(non_upper_case_globals)]
             const _DERIVE_quickcheck_Arbitrary_FOR_ArbitraryTest: () = {
                 impl ::quickcheck::Arbitrary for ArbitraryTest {
-                    fn arbitrary<G: ::quickcheck::Gen>(g: &mut G) -> Self {
+                    fn arbitrary(g: &mut ::quickcheck::Gen) -> Self {
                         ArbitraryTest(::quickcheck::Arbitrary::arbitrary(g),
                                       ::quickcheck::Arbitrary::arbitrary(g), )
                     }
@@ -127,8 +127,8 @@ fn test_arbitrary_enum() {
             #[allow(non_upper_case_globals)]
             const _DERIVE_quickcheck_Arbitrary_FOR_ArbitraryTest: () = {
                 impl ::quickcheck::Arbitrary for ArbitraryTest {
-                    fn arbitrary<G: ::quickcheck::Gen>(g: &mut G) -> Self {
-                        match ::rand::Rng::gen_range(g, 0, 3usize) {
+                    fn arbitrary(g: &mut ::quickcheck::Gen) -> Self {
+                        match usize::arbitrary(g) % 3usize {
                             0usize => ArbitraryTest::A,
                             1usize => ArbitraryTest::B(::quickcheck::Arbitrary::arbitrary(g),
                                                        ::quickcheck::Arbitrary::arbitrary(g),
@@ -137,7 +137,7 @@ fn test_arbitrary_enum() {
                                     b : ::quickcheck::Arbitrary::arbitrary(g),
                                     d : ::quickcheck::Arbitrary::arbitrary(g),
                                 },
-                            _ => unreachable!()
+                            _ => unreachable!(),
                         }
                     }
                 }
